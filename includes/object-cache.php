@@ -289,6 +289,13 @@ class WP_Object_Cache {
 	 */
 	public $no_redis_groups = array( 'comment', 'counts' );
 
+	/*
+	 * List of groups saved to Redis.
+	 *
+	 * @var array
+	 */
+	public $yes_redis_groups = array( 'batcache' );
+
 	/**
 	 * Prefix used for global groups.
 	 *
@@ -826,6 +833,9 @@ class WP_Object_Cache {
 	 * @return  string
 	 */
 	public function build_key( $key, $group = 'default' ) {
+		if ( count($this->yes_redis_groups) > 0 && ! in_array( $group, $this->yes_redis_groups ) ) {
+			$this->add_non_persistent_groups( $group );
+		}
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
