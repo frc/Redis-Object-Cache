@@ -294,7 +294,7 @@ class WP_Object_Cache {
 	 *
 	 * @var array
 	 */
-	public $yes_redis_groups = array( 'batcache' );
+	public $yes_redis_groups = array( 'batcache', 'transient' );
 
 	/**
 	 * Prefix used for global groups.
