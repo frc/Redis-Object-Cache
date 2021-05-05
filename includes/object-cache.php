@@ -554,6 +554,7 @@ class WP_Object_Cache {
             'timeout',
             'read_timeout',
             'retry_interval',
+            'stream_context',
         ];
 
         foreach ( $settings as $setting ) {
@@ -611,11 +612,12 @@ class WP_Object_Cache {
                 'retry_interval' => $parameters['retry_interval'],
             ];
 
-            if ( strcasecmp( 'tls', $parameters['scheme'] ) === 0 ) {
+            $pattern = "/tls((v1\.1)|(v1\.2))?:\/\//i";
+            if ( preg_match( $pattern, $parameters['scheme'] )) {
                 $args['host'] = sprintf(
                     '%s://%s',
                     $parameters['scheme'],
-                    str_replace( 'tls://', '', $parameters['host'] )
+                    preg_replace( $pattern, '', $parameters['host'] )
                 );
             }
 
@@ -626,6 +628,10 @@ class WP_Object_Cache {
 
             if ( version_compare( $version, '3.1.3', '>=' ) ) {
                 $args['read_timeout'] = $parameters['read_timeout'];
+            }
+
+            if ( isset( $parameters['stream_context'] ) && version_compare( $version, '5.3.0', '>=' ) ) {
+                $args['stream_context'] = $parameters['stream_context'];
             }
 
             call_user_func_array( [ $this->redis, 'connect' ], array_values( $args ) );
@@ -1974,6 +1980,8 @@ LUA;
         );
 
         return (object) [
+            // Connected, Disabled, Unknown, Not connected
+            // 'status' => '...',
             'hits' => $this->cache_hits,
             'misses' => $this->cache_misses,
             'ratio' => $total > 0 ? round( $this->cache_hits / ( $total / 100 ), 1 ) : 100,
